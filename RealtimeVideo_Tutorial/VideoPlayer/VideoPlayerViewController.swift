@@ -14,7 +14,11 @@ import SnapKit
 class VideoPlayerViewController: UIViewController {
 
     private let disposeBag = DisposeBag()
-    private var isLandscape: BehaviorRelay<Bool> = BehaviorRelay(value: false)
+
+    var currentTimeSeconds: Float = 0
+    var totalTimeSeconds: Float = 0
+
+    var playerViewModel: VideoPlayerViewModel? = nil
 
     private var movieUrl: URL? = nil
 
@@ -23,7 +27,8 @@ class VideoPlayerViewController: UIViewController {
 
     private let bgView: UIView = {
         let view = UIView()
-        view.backgroundColor = .systemGray6
+        view.alpha = 0.4
+        view.backgroundColor = .black
         return view
     }()
 
@@ -32,39 +37,41 @@ class VideoPlayerViewController: UIViewController {
     private let timeSlider: UISlider = {
         let timeSlider = UISlider()
         timeSlider.maximumTrackTintColor = .gray
-        timeSlider.minimumTrackTintColor = .gray
-        let config = UIImage.SymbolConfiguration(pointSize: 16)
-        timeSlider.setThumbImage(UIImage(systemName: "circle.fill", withConfiguration: config), for: .normal)
+        timeSlider.minimumTrackTintColor = .red
+        timeSlider.thumbTintColor = .red
 
-        timeSlider.addTarget(self, action: #selector(timeSliderDidChange(_:)), for: .valueChanged)
+        timeSlider.addTarget(self, action: #selector(timeSliderDidChange(_:)), for: .touchUpInside)
         return timeSlider
     }()
 
     private let startTimeLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 12, weight: .medium)
-        label.textColor = .gray
+        label.font = .systemFont(ofSize: 13, weight: .medium)
+        label.textColor = .systemGray2
         return label
     }()
 
-    private let durationLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 12, weight: .medium)
-        label.textColor = .gray
-        return label
+    private let onAirButton: UIButton = {
+        let button = UIButton()
+        button.titleLabel?.font = .systemFont(ofSize: 13, weight: .medium)
+        button.titleLabel?.textColor = .systemGray2
+        button.addTarget(self, action: #selector(didTapOnAirButton), for: .touchUpInside)
+        return button
     }()
 
     private lazy var closeButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: "xmark.circle"), for: .normal)
-        button.tintColor = .systemGray6
+        button.tintColor = .white
         button.addTarget(self, action: #selector(didTapCloseButton), for: .touchUpInside)
         return button
     }()
 
     private lazy var playPauseButton: UIButton = {
         let button = UIButton()
-        button.tintColor = .gray
+        button.tintColor = .white
+        let config = UIImage.SymbolConfiguration(pointSize: 60)
+        button.setPreferredSymbolConfiguration(config, forImageIn: .normal)
         button.addTarget(self, action: #selector(didTapPlayPauseButton), for: .touchUpInside)
         return button
     }()
@@ -72,7 +79,7 @@ class VideoPlayerViewController: UIViewController {
     private lazy var rewindButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: "gobackward.15"), for: .normal)
-        button.tintColor = .gray
+        button.tintColor = .white
         button.addTarget(self, action: #selector(didTapRewindButton), for: .touchUpInside)
         return button
     }()
@@ -80,7 +87,7 @@ class VideoPlayerViewController: UIViewController {
     private lazy var forwardButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: "goforward.15"), for: .normal)
-        button.tintColor = .gray
+        button.tintColor = .white
         button.addTarget(self, action: #selector(didTapforwardButton), for: .touchUpInside)
         return button
     }()
@@ -88,7 +95,7 @@ class VideoPlayerViewController: UIViewController {
     private lazy var fullScreenButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: "arrow.up.left.and.arrow.down.right"), for: .normal)
-        button.tintColor = .gray
+        button.tintColor = .white
         button.addTarget(self, action: #selector(didTapfullScreenButton), for: .touchUpInside)
         return button
     }()
@@ -96,7 +103,7 @@ class VideoPlayerViewController: UIViewController {
     private lazy var minimizeScreenButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: "arrow.down.right.and.arrow.up.left"), for: .normal)
-        button.tintColor = .gray
+        button.tintColor = .white
         button.addTarget(self, action: #selector(didTapminimizeScreenButton), for: .touchUpInside)
         return button
     }()
@@ -109,29 +116,25 @@ class VideoPlayerViewController: UIViewController {
     }()
 
     func updatePlayerItem(data: Video) {
-        guard let movieUrl = URL(string: data.urlString) else {
-            return
-        }
+        guard let movieUrl = URL(string: data.urlString) else { return }
 
         self.movieUrl = movieUrl
         let newAsset = AVAsset(url: movieUrl)
-        let newItem = AVPlayerItem(asset: newAsset)
 
         self.player.replaceCurrentItem(with: AVPlayerItem(asset: newAsset))
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        bindingPlayerController()
+        view.backgroundColor = .systemBackground
 
-        setupPlayerObservers()
         setupViewsForPotrait()
 
         guard let movieUrl = movieUrl else { return }
         let asset = AVURLAsset(url: movieUrl)
 
         loadPropertyValues(forAsset: asset)
-
-        showVideoControl()
 
         setRecognizer()
     }
@@ -146,7 +149,6 @@ class VideoPlayerViewController: UIViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         player.pause()
-        isLandscape.accept(false)
 
         super.viewWillDisappear(animated)
     }
@@ -154,20 +156,38 @@ class VideoPlayerViewController: UIViewController {
     //MARK: Set animations
     func setRecognizer() {
         let tapOnce = UITapGestureRecognizer(target: self, action: #selector(didTapOnce))
+        tapOnce.numberOfTapsRequired = 1
+
+        let tapTwice = UITapGestureRecognizer(target: self, action: #selector(didTapTwice))
+        tapTwice.numberOfTapsRequired = 2
+
+        tapOnce.require(toFail: tapTwice)
+
         playerView.addGestureRecognizer(tapOnce)
+        playerView.addGestureRecognizer(tapTwice)
+
+        let controlTapOnce = UITapGestureRecognizer(target: self, action: #selector(didTapOnce))
+
+        videoControlView.addGestureRecognizer(controlTapOnce)
     }
 
     @objc
     func didTapOnce() {
-        showVideoControl()
+        let newValue = !(playerViewModel?.shouldShowControl.value ?? true)
+        playerViewModel?.shouldShowControl.accept(newValue)
+    }
+
+    @objc
+    func didTapTwice() {
+        print("tap twice!")
+    }
+
+    func hideVideoControl() {
+        self.videoControlView.fadeOut(0.3)
     }
 
     func showVideoControl() {
-        videoControlView.isHidden = false
-        videoControlView.alpha = 1
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            self.videoControlView.fadeOut(0.8)
-        }
+        self.videoControlView.fadeIn(0.3)
     }
 
 
@@ -184,7 +204,7 @@ class VideoPlayerViewController: UIViewController {
             closeButton,
             timeSlider,
             startTimeLabel,
-            durationLabel,
+            onAirButton,
             playPauseButton,
             rewindButton,
             forwardButton,
@@ -193,11 +213,11 @@ class VideoPlayerViewController: UIViewController {
 
         views.forEach { videoControlView.addSubview($0)}
 
-        let iconSize: Float = 20
+        let iconSize: Float = 30
 
         playerView.snp.makeConstraints {
             $0.leading.top.trailing.equalTo(view.safeAreaLayoutGuide)
-            $0.height.equalTo(240)
+            $0.height.equalTo(320)
         }
 
         videoControlView.snp.makeConstraints {
@@ -205,46 +225,44 @@ class VideoPlayerViewController: UIViewController {
         }
 
         bgView.snp.makeConstraints {
-            $0.leading.trailing.bottom.equalTo(videoControlView)
-            $0.height.equalTo(40)
+            $0.edges.equalTo(videoControlView)
+        }
+
+        playPauseButton.snp.makeConstraints {
+            $0.centerX.centerY.equalTo(videoControlView)
+            $0.width.height.equalTo(iconSize)
         }
 
         rewindButton.snp.makeConstraints {
-            $0.leading.equalTo(videoControlView).inset(8)
-            $0.bottom.equalTo(videoControlView).inset(12)
-            $0.width.height.equalTo(iconSize)
-        }
-        playPauseButton.snp.makeConstraints {
-            $0.leading.equalTo(rewindButton.snp.trailing).offset(4)
-            $0.bottom.equalTo(rewindButton)
+            $0.centerY.equalTo(playPauseButton)
+            $0.trailing.equalTo(playPauseButton.snp.leading).inset(-50)
             $0.width.height.equalTo(iconSize)
         }
 
         forwardButton.snp.makeConstraints {
-            $0.leading.equalTo(playPauseButton.snp.trailing).offset(4)
-            $0.bottom.equalTo(rewindButton)
+            $0.centerY.equalTo(playPauseButton)
+            $0.leading.equalTo(playPauseButton.snp.trailing).offset(50)
             $0.width.height.equalTo(iconSize)
         }
 
         timeSlider.snp.makeConstraints {
-            $0.leading.equalTo(forwardButton.snp.trailing).offset(12)
-            $0.centerY.equalTo(forwardButton)
-            $0.trailing.equalTo(fullScreenButton.snp.leading).offset(-24)
+            $0.leading.trailing.equalTo(videoControlView)
+            $0.bottom.equalTo(videoControlView).inset(8)
         }
 
         startTimeLabel.snp.makeConstraints {
-            $0.leading.equalTo(timeSlider)
-            $0.bottom.equalTo(videoControlView).inset(4)
+            $0.leading.equalTo(videoControlView).inset(16)
+            $0.bottom.equalTo(timeSlider.snp.top).inset(-8)
         }
 
-        durationLabel.snp.makeConstraints {
-            $0.trailing.equalTo(timeSlider)
-            $0.bottom.equalTo(videoControlView).inset(4)
+        onAirButton.snp.makeConstraints {
+            $0.leading.equalTo(startTimeLabel.snp.trailing).offset(16)
+            $0.centerY.equalTo(startTimeLabel)
         }
 
         fullScreenButton.snp.makeConstraints {
             $0.trailing.equalTo(videoControlView).inset(8)
-            $0.bottom.equalTo(rewindButton)
+            $0.bottom.equalTo(timeSlider.snp.top).inset(-4)
             $0.width.height.equalTo(iconSize)
         }
 
@@ -268,7 +286,7 @@ class VideoPlayerViewController: UIViewController {
             bgView,
             timeSlider,
             startTimeLabel,
-            durationLabel,
+            onAirButton,
             playPauseButton,
             rewindButton,
             forwardButton,
@@ -277,7 +295,7 @@ class VideoPlayerViewController: UIViewController {
         ]
         views.forEach { videoControlView.addSubview($0)}
 
-        let iconSize: Float = 30
+        let iconSize: Float = 40
 
         playerView.snp.makeConstraints {
             $0.edges.equalTo(view.safeAreaLayoutGuide)
@@ -286,47 +304,46 @@ class VideoPlayerViewController: UIViewController {
         videoControlView.snp.makeConstraints {
             $0.edges.equalTo(playerView)
         }
+
         bgView.snp.makeConstraints {
-            $0.leading.trailing.bottom.equalTo(videoControlView)
-            $0.height.equalTo(50)
+            $0.edges.equalTo(videoControlView)
         }
 
-        rewindButton.snp.makeConstraints {
-            $0.leading.equalTo(playerView).inset(16)
-            $0.bottom.equalTo(playerView).inset(16)
-            $0.width.height.equalTo(iconSize)
-        }
         playPauseButton.snp.makeConstraints {
-            $0.leading.equalTo(rewindButton.snp.trailing).offset(8)
-            $0.bottom.equalTo(rewindButton)
+            $0.centerX.centerY.equalTo(videoControlView)
             $0.width.height.equalTo(iconSize)
         }
 
-        forwardButton.snp.makeConstraints {
-            $0.leading.equalTo(playPauseButton.snp.trailing).offset(8)
-            $0.bottom.equalTo(rewindButton)
+        rewindButton.snp.remakeConstraints {
+            $0.centerY.equalTo(playPauseButton)
+            $0.trailing.equalTo(playPauseButton.snp.leading).inset(-80)
+            $0.width.height.equalTo(iconSize)
+        }
+
+        forwardButton.snp.remakeConstraints {
+            $0.centerY.equalTo(playPauseButton)
+            $0.leading.equalTo(playPauseButton.snp.trailing).offset(80)
             $0.width.height.equalTo(iconSize)
         }
 
         timeSlider.snp.makeConstraints {
-            $0.leading.equalTo(forwardButton.snp.trailing).offset(16)
-            $0.centerY.equalTo(forwardButton)
-            $0.trailing.equalTo(minimizeScreenButton.snp.leading).offset(-48)
+            $0.leading.trailing.equalTo(videoControlView)
+            $0.bottom.equalTo(videoControlView).inset(8)
         }
 
         startTimeLabel.snp.makeConstraints {
-            $0.leading.equalTo(timeSlider)
-            $0.bottom.equalTo(playerView).inset(4)
+            $0.leading.equalTo(videoControlView).inset(16)
+            $0.bottom.equalTo(timeSlider.snp.top).inset(-8)
         }
 
-        durationLabel.snp.makeConstraints {
-            $0.trailing.equalTo(timeSlider)
-            $0.bottom.equalTo(playerView).inset(4)
+        onAirButton.snp.remakeConstraints {
+            $0.leading.equalTo(videoControlView).inset(16)
+            $0.centerY.equalTo(startTimeLabel)
         }
 
         minimizeScreenButton.snp.makeConstraints {
-            $0.trailing.equalTo(playerView).inset(16)
-            $0.bottom.equalTo(rewindButton)
+            $0.trailing.equalTo(videoControlView).inset(8)
+            $0.bottom.equalTo(timeSlider.snp.top).inset(-4)
             $0.width.height.equalTo(iconSize)
         }
 
@@ -349,17 +366,6 @@ class VideoPlayerViewController: UIViewController {
         }
         guard let image = buttonImage else { return }
         self.playPauseButton.setImage(image, for: .normal)
-    }
-
-    func readyToPlay() {
-        guard let currentItem = player.currentItem else { return }
-        let newDurationSeconds = Float(currentItem.duration.seconds)
-        print(newDurationSeconds)
-
-        let currentTime = Float(CMTimeGetSeconds(player.currentTime()))
-
-        timeSlider.maximumValue = newDurationSeconds
-        timeSlider.value = currentTime
     }
 }
 
@@ -390,24 +396,40 @@ private extension VideoPlayerViewController {
 
     @objc
     func timeSliderDidChange(_ sender: UISlider) {
-        let newTime = CMTime(seconds: Double(sender.value), preferredTimescale: 600)
+        currentTimeSeconds = sender.value
+        timeSlider.value = self.currentTimeSeconds
+        let newTime = CMTime(seconds: Double(currentTimeSeconds), preferredTimescale: 600)
         player.seek(to: newTime, toleranceBefore: .zero, toleranceAfter: .zero)
     }
 
     @objc
     func didTapRewindButton() {
-        if let currentTime = player.currentItem?.currentTime() {
-            let newTime = currentTime - CMTime(value: 9000, timescale: 600)
-            player.seek(to: newTime, toleranceBefore: .zero, toleranceAfter: .zero)
+        currentTimeSeconds -= 15
+        if currentTimeSeconds < 0 {
+            currentTimeSeconds = 0
         }
+        timeSlider.value = self.currentTimeSeconds
+
+        let newTime = CMTime(seconds: Double(currentTimeSeconds), preferredTimescale: 600)
+        player.seek(to: newTime, toleranceBefore: .zero, toleranceAfter: .zero)
     }
 
     @objc
     func didTapforwardButton() {
-        if let currentTime = player.currentItem?.currentTime() {
-            let newTime = currentTime + CMTime(value: 9000, timescale: 600)
-            player.seek(to: newTime, toleranceBefore: .zero, toleranceAfter: .zero)
-        }
+        currentTimeSeconds += 15
+        timeSlider.value = self.currentTimeSeconds
+
+        let newTime = CMTime(seconds: Double(currentTimeSeconds), preferredTimescale: 600)
+        player.seek(to: newTime, toleranceBefore: .zero, toleranceAfter: .zero)
+    }
+
+    @objc
+    func didTapOnAirButton() {
+        currentTimeSeconds = totalTimeSeconds
+        timeSlider.value = self.currentTimeSeconds
+
+        let newTime = CMTime(seconds: Double(currentTimeSeconds), preferredTimescale: 600)
+        player.seek(to: newTime, toleranceBefore: .zero, toleranceAfter: .zero)
     }
 
     @objc
@@ -435,9 +457,45 @@ private extension VideoPlayerViewController {
     }
 }
 
-private extension VideoPlayerViewController {
+extension VideoPlayerViewController {
 
-    func setupPlayerObservers() {
+    func bindingPlayerController(viewModel: VideoPlayerViewModel = VideoPlayerViewModel()) {
+        playerViewModel = viewModel
+
+        playPauseButton.rx.tap
+            .bind(onNext: { _ in
+                viewModel.controlButtonTapped.accept(true)
+            })
+            .disposed(by: disposeBag)
+
+        rewindButton.rx.tap
+            .bind(onNext: { _ in
+                viewModel.controlButtonTapped.accept(true)
+            })
+            .disposed(by: disposeBag)
+
+        forwardButton.rx.tap
+            .bind(onNext: { _ in
+                viewModel.controlButtonTapped.accept(true)
+            })
+            .disposed(by: disposeBag)
+
+        fullScreenButton.rx.tap
+            .bind(onNext: { _ in
+                viewModel.controlButtonTapped.accept(true)
+            })
+            .disposed(by: disposeBag)
+
+        minimizeScreenButton.rx.tap
+            .bind(onNext: { _ in
+                viewModel.controlButtonTapped.accept(true)
+            })
+            .disposed(by: disposeBag)
+
+        viewModel.shouldShowControl // Bool
+            .bind(to: self.rx.videoControlVisibilty)
+            .disposed(by: disposeBag)
+
 
         player.rx.timeControlStatus
             .subscribe(onNext: {_ in
@@ -450,33 +508,40 @@ private extension VideoPlayerViewController {
             .subscribe(onNext: { [weak self] time in
                 guard let self = self else { return }
                 let timeElapsed = Float(time.seconds)
-                self.timeSlider.value = timeElapsed
-                self.startTimeLabel.text = self.createTimeString(time: timeElapsed)
-            }).disposed(by: disposeBag)
+                print(timeElapsed)
+                self.currentTimeSeconds += 0.25
+                self.totalTimeSeconds += 0.25
+                self.timeSlider.maximumValue = self.totalTimeSeconds
+                self.timeSlider.value = self.currentTimeSeconds
 
-        player.rx.status
-            .subscribe(onNext: { [weak self] isReady in
-                if isReady {
-                    DispatchQueue.main.asyncAfter(deadline: .now()+2) {
-                        self?.readyToPlay()
+                let time = self.totalTimeSeconds - self.currentTimeSeconds
+                if time == 0 {
+                    self.startTimeLabel.isHidden = true
+                    self.onAirButton.snp.remakeConstraints {
+                        $0.leading.equalTo(self.videoControlView).inset(16)
+                        $0.centerY.equalTo(self.startTimeLabel)
                     }
-
+                    self.onAirButton.setTitle("🔴 실시간", for: .normal)
+                } else {
+                    self.startTimeLabel.isHidden = false
+                    self.startTimeLabel.text = "-\(self.createTimeString(time: time))"
+                    self.onAirButton.snp.remakeConstraints {
+                        $0.leading.equalTo(self.startTimeLabel.snp.trailing).offset(16)
+                        $0.centerY.equalTo(self.startTimeLabel)
+                    }
+                    self.onAirButton.setTitle("⚪️ 실시간", for: .normal)
                 }
+
             }).disposed(by: disposeBag)
 
-        NotificationCenter.default
-            .rx.isLandScape(UIDevice.orientationDidChangeNotification)
-            .subscribe(onNext: { [weak self] value in
-                self?.isLandscape.accept(value)
-            }).disposed(by: disposeBag)
-
-        isLandscape.subscribe(onNext: { [weak self] isLandscapeValue in
+        viewModel.isLandscape.subscribe(onNext: { [weak self] isLandscapeValue in
             if isLandscapeValue {
                 self?.setupViewsForLandScape()
             } else {
                 self?.setupViewsForPotrait()
             }
-        }).disposed(by: disposeBag)
+        })
+        .disposed(by: disposeBag)
     }
 
     func loadPropertyValues(forAsset newAsset: AVURLAsset) {
@@ -488,7 +553,6 @@ private extension VideoPlayerViewController {
         newAsset.loadValuesAsynchronously(forKeys: assetKeysRequiredToPlay) {
             DispatchQueue.main.async {
                 if self.validateValues(forKeys: assetKeysRequiredToPlay, forAsset: newAsset) {
-                    self.setupPlayerObservers()
                     self.playerView.player = self.player
 
                     self.playerView.playerLayer.videoGravity = .resizeAspect
@@ -540,15 +604,14 @@ private extension VideoPlayerViewController {
     }
 }
 
-
-extension Reactive where Base : NotificationCenter {
-
-    func isLandScape(_ name: Notification.Name?, object: AnyObject? = nil)
-    -> Observable<Bool> {
-        return notification(name)
-            .map { _ in
-                return UIDevice.current.orientation.isLandscape
+private extension Reactive where Base: VideoPlayerViewController {
+    var videoControlVisibilty: Binder<Bool> {
+        return Binder(base) { vc, shouldShow in
+            if shouldShow {
+                vc.showVideoControl()
+            } else {
+                vc.hideVideoControl()
             }
+        }
     }
 }
-

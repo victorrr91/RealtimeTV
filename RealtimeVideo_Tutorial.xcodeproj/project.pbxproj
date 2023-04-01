@@ -8,7 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		B185412929D0C71F00C8AA62 /* UIView+Ani.swift in Sources */ = {isa = PBXBuildFile; fileRef = B185412829D0C71F00C8AA62 /* UIView+Ani.swift */; };
+		B186F68129D8634A005EB616 /* VideoListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B186F68029D8634A005EB616 /* VideoListViewModel.swift */; };
+		B186F68429D863AE005EB616 /* Video.swift in Sources */ = {isa = PBXBuildFile; fileRef = B186F68329D863AE005EB616 /* Video.swift */; };
 		B1ACE4CB29CD56DD00B957F7 /* AVPlayer+Rx.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1ACE4CA29CD56DD00B957F7 /* AVPlayer+Rx.swift */; };
+		B1D2EEAB29D6029F0009EFB2 /* VideoPlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D2EEAA29D6029F0009EFB2 /* VideoPlayerViewModel.swift */; };
+		B1D2EEAD29D604620009EFB2 /* NotificationCenter+Rx.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D2EEAC29D604620009EFB2 /* NotificationCenter+Rx.swift */; };
+		B1D2EEB029D618030009EFB2 /* RxGesture in Frameworks */ = {isa = PBXBuildFile; productRef = B1D2EEAF29D618030009EFB2 /* RxGesture */; };
 		B1D717C829CC98C900F505BB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D717C729CC98C900F505BB /* AppDelegate.swift */; };
 		B1D717CA29CC98C900F505BB /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D717C929CC98C900F505BB /* SceneDelegate.swift */; };
 		B1D717CC29CC98C900F505BB /* VideoListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D717CB29CC98C900F505BB /* VideoListViewController.swift */; };
@@ -25,7 +30,11 @@
 
 /* Begin PBXFileReference section */
 		B185412829D0C71F00C8AA62 /* UIView+Ani.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Ani.swift"; sourceTree = "<group>"; };
+		B186F68029D8634A005EB616 /* VideoListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoListViewModel.swift; sourceTree = "<group>"; };
+		B186F68329D863AE005EB616 /* Video.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Video.swift; sourceTree = "<group>"; };
 		B1ACE4CA29CD56DD00B957F7 /* AVPlayer+Rx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AVPlayer+Rx.swift"; sourceTree = "<group>"; };
+		B1D2EEAA29D6029F0009EFB2 /* VideoPlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayerViewModel.swift; sourceTree = "<group>"; };
+		B1D2EEAC29D604620009EFB2 /* NotificationCenter+Rx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotificationCenter+Rx.swift"; sourceTree = "<group>"; };
 		B1D717C429CC98C900F505BB /* RealtimeVideo_Tutorial.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RealtimeVideo_Tutorial.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1D717C729CC98C900F505BB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B1D717C929CC98C900F505BB /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -45,6 +54,7 @@
 			files = (
 				B1D717E129CC997600F505BB /* RxSwift in Frameworks */,
 				B1D717E429CC999100F505BB /* SnapKit in Frameworks */,
+				B1D2EEB029D618030009EFB2 /* RxGesture in Frameworks */,
 				B1D717DF29CC997600F505BB /* RxRelay in Frameworks */,
 				B1D717DD29CC997600F505BB /* RxCocoa in Frameworks */,
 			);
@@ -57,6 +67,7 @@
 			isa = PBXGroup;
 			children = (
 				B1D717E929CCCA1900F505BB /* VideoPlayerViewController.swift */,
+				B1D2EEAA29D6029F0009EFB2 /* VideoPlayerViewModel.swift */,
 				B185412529D09F0300C8AA62 /* Views */,
 			);
 			path = VideoPlayer;
@@ -74,6 +85,7 @@
 			isa = PBXGroup;
 			children = (
 				B1ACE4CA29CD56DD00B957F7 /* AVPlayer+Rx.swift */,
+				B1D2EEAC29D604620009EFB2 /* NotificationCenter+Rx.swift */,
 				B185412829D0C71F00C8AA62 /* UIView+Ani.swift */,
 			);
 			path = Extensions;
@@ -83,9 +95,18 @@
 			isa = PBXGroup;
 			children = (
 				B1D717CB29CC98C900F505BB /* VideoListViewController.swift */,
+				B186F68029D8634A005EB616 /* VideoListViewModel.swift */,
 				B1D717E729CCC4DB00F505BB /* VideoListViewCell.swift */,
 			);
 			path = VideoList;
+			sourceTree = "<group>";
+		};
+		B186F68229D8639F005EB616 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B186F68329D863AE005EB616 /* Video.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 		B1D717BB29CC98C900F505BB = {
@@ -109,6 +130,7 @@
 			children = (
 				B1D717C729CC98C900F505BB /* AppDelegate.swift */,
 				B1D717C929CC98C900F505BB /* SceneDelegate.swift */,
+				B186F68229D8639F005EB616 /* Models */,
 				B185412729D09F4300C8AA62 /* VideoList */,
 				B185412429D09EF400C8AA62 /* VideoPlayer */,
 				B185412629D09F1D00C8AA62 /* Extensions */,
@@ -140,6 +162,7 @@
 				B1D717DE29CC997600F505BB /* RxRelay */,
 				B1D717E029CC997600F505BB /* RxSwift */,
 				B1D717E329CC999100F505BB /* SnapKit */,
+				B1D2EEAF29D618030009EFB2 /* RxGesture */,
 			);
 			productName = RealtimeVideo_Tutorial;
 			productReference = B1D717C429CC98C900F505BB /* RealtimeVideo_Tutorial.app */;
@@ -172,6 +195,7 @@
 			packageReferences = (
 				B1D717DB29CC997600F505BB /* XCRemoteSwiftPackageReference "RxSwift" */,
 				B1D717E229CC999100F505BB /* XCRemoteSwiftPackageReference "SnapKit" */,
+				B1D2EEAE29D618030009EFB2 /* XCRemoteSwiftPackageReference "RxGesture" */,
 			);
 			productRefGroup = B1D717C529CC98C900F505BB /* Products */;
 			projectDirPath = "";
@@ -199,8 +223,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B1D2EEAB29D6029F0009EFB2 /* VideoPlayerViewModel.swift in Sources */,
+				B186F68429D863AE005EB616 /* Video.swift in Sources */,
+				B186F68129D8634A005EB616 /* VideoListViewModel.swift in Sources */,
 				B1D717E829CCC4DB00F505BB /* VideoListViewCell.swift in Sources */,
 				B1D717CC29CC98C900F505BB /* VideoListViewController.swift in Sources */,
+				B1D2EEAD29D604620009EFB2 /* NotificationCenter+Rx.swift in Sources */,
 				B1D717EC29CCCD3B00F505BB /* PlayerView.swift in Sources */,
 				B1D717C829CC98C900F505BB /* AppDelegate.swift in Sources */,
 				B1D717EA29CCCA1900F505BB /* VideoPlayerViewController.swift in Sources */,
@@ -416,6 +444,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		B1D2EEAE29D618030009EFB2 /* XCRemoteSwiftPackageReference "RxGesture" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RxSwiftCommunity/RxGesture";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.0;
+			};
+		};
 		B1D717DB29CC997600F505BB /* XCRemoteSwiftPackageReference "RxSwift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ReactiveX/RxSwift";
@@ -435,6 +471,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		B1D2EEAF29D618030009EFB2 /* RxGesture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B1D2EEAE29D618030009EFB2 /* XCRemoteSwiftPackageReference "RxGesture" */;
+			productName = RxGesture;
+		};
 		B1D717DC29CC997600F505BB /* RxCocoa */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = B1D717DB29CC997600F505BB /* XCRemoteSwiftPackageReference "RxSwift" */;
