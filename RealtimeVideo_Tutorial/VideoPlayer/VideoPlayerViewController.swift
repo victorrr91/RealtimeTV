@@ -15,6 +15,8 @@ class VideoPlayerViewController: UIViewController {
 
     private let disposeBag = DisposeBag()
 
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
+
     var currentTimeSeconds: Float = 0
     var totalTimeSeconds: Float = 0
 
@@ -24,6 +26,12 @@ class VideoPlayerViewController: UIViewController {
 
     let player = AVPlayer()
     private let playerView = PlayerView()
+
+//    private let rewindImageView = TapImageView(iconType: .rewind)
+//    private let forwardImageView = TapImageView(iconType: .forward)
+
+    private let rewindTapView = UIView()
+    private let forwardTapView = UIView()
 
     private let bgView: UIView = {
         let view = UIView()
@@ -143,6 +151,7 @@ class VideoPlayerViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         player.play()
+        appDelegate.shouldSupportAllOrientation = true
 
         super.viewWillAppear(animated)
     }
@@ -158,15 +167,21 @@ class VideoPlayerViewController: UIViewController {
         let tapOnce = UITapGestureRecognizer(target: self, action: #selector(didTapOnce))
         tapOnce.numberOfTapsRequired = 1
 
-        let tapTwice = UITapGestureRecognizer(target: self, action: #selector(didTapTwice))
-        tapTwice.numberOfTapsRequired = 2
+        let rewindTapped = UITapGestureRecognizer(target: self, action: #selector(rewindCalled))
+        rewindTapped.numberOfTapsRequired = 2
 
-        tapOnce.require(toFail: tapTwice)
+        let forwardTapped = UITapGestureRecognizer(target: self, action: #selector(forwardCalled))
+        forwardTapped.numberOfTapsRequired = 2
+
+        tapOnce.require(toFail: rewindTapped)
+        tapOnce.require(toFail: forwardTapped)
 
         playerView.addGestureRecognizer(tapOnce)
-        playerView.addGestureRecognizer(tapTwice)
+        rewindTapView.addGestureRecognizer(rewindTapped)
+        forwardTapView.addGestureRecognizer(forwardTapped)
 
         let controlTapOnce = UITapGestureRecognizer(target: self, action: #selector(didTapOnce))
+        controlTapOnce.numberOfTapsRequired = 1
 
         videoControlView.addGestureRecognizer(controlTapOnce)
     }
@@ -178,8 +193,13 @@ class VideoPlayerViewController: UIViewController {
     }
 
     @objc
-    func didTapTwice() {
-        print("tap twice!")
+    func rewindCalled() {
+        didTapRewindButton()
+    }
+
+    @objc
+    func forwardCalled() {
+        didTapforwardButton()
     }
 
     func hideVideoControl() {
@@ -198,6 +218,25 @@ class VideoPlayerViewController: UIViewController {
         minimizeScreenButton.removeFromSuperview()
 
         view.addSubview(playerView)
+
+        playerView.snp.makeConstraints {
+            $0.leading.top.trailing.equalTo(view.safeAreaLayoutGuide)
+            $0.height.equalTo(320)
+        }
+
+        playerView.addSubview(rewindTapView)
+        playerView.addSubview(forwardTapView)
+
+        rewindTapView.snp.makeConstraints {
+            $0.leading.top.bottom.equalToSuperview()
+            $0.trailing.equalTo(playerView.snp.centerX)
+        }
+
+        forwardTapView.snp.makeConstraints {
+            $0.trailing.top.bottom.equalToSuperview()
+            $0.leading.equalTo(playerView.snp.centerX)
+        }
+
         view.addSubview(videoControlView)
         let views = [
             bgView,
@@ -215,11 +254,6 @@ class VideoPlayerViewController: UIViewController {
 
         let iconSize: Float = 30
 
-        playerView.snp.makeConstraints {
-            $0.leading.top.trailing.equalTo(view.safeAreaLayoutGuide)
-            $0.height.equalTo(320)
-        }
-
         videoControlView.snp.makeConstraints {
             $0.edges.equalTo(playerView)
         }
@@ -233,13 +267,13 @@ class VideoPlayerViewController: UIViewController {
             $0.width.height.equalTo(iconSize)
         }
 
-        rewindButton.snp.makeConstraints {
+        rewindButton.snp.remakeConstraints {
             $0.centerY.equalTo(playPauseButton)
             $0.trailing.equalTo(playPauseButton.snp.leading).inset(-50)
             $0.width.height.equalTo(iconSize)
         }
 
-        forwardButton.snp.makeConstraints {
+        forwardButton.snp.remakeConstraints {
             $0.centerY.equalTo(playPauseButton)
             $0.leading.equalTo(playPauseButton.snp.trailing).offset(50)
             $0.width.height.equalTo(iconSize)
@@ -250,13 +284,13 @@ class VideoPlayerViewController: UIViewController {
             $0.bottom.equalTo(videoControlView).inset(8)
         }
 
-        startTimeLabel.snp.makeConstraints {
+        startTimeLabel.snp.remakeConstraints {
             $0.leading.equalTo(videoControlView).inset(16)
             $0.bottom.equalTo(timeSlider.snp.top).inset(-8)
         }
 
-        onAirButton.snp.makeConstraints {
-            $0.leading.equalTo(startTimeLabel.snp.trailing).offset(16)
+        onAirButton.snp.remakeConstraints {
+            $0.leading.equalTo(videoControlView).inset(16)
             $0.centerY.equalTo(startTimeLabel)
         }
 
@@ -268,7 +302,7 @@ class VideoPlayerViewController: UIViewController {
 
         closeButton.snp.makeConstraints {
             $0.leading.top.equalTo(playerView).inset(8)
-            $0.width.height.equalTo(30)
+            $0.width.height.equalTo(iconSize)
         }
     }
 
@@ -280,6 +314,24 @@ class VideoPlayerViewController: UIViewController {
         bgView.snp.removeConstraints()
 
         view.addSubview(playerView)
+
+        playerView.snp.makeConstraints {
+            $0.edges.equalTo(view.safeAreaLayoutGuide)
+        }
+
+        playerView.addSubview(rewindTapView)
+        playerView.addSubview(forwardTapView)
+
+        rewindTapView.snp.makeConstraints {
+            $0.leading.top.bottom.equalToSuperview()
+            $0.trailing.equalTo(playerView.snp.centerX)
+        }
+
+        forwardTapView.snp.makeConstraints {
+            $0.trailing.top.bottom.equalToSuperview()
+            $0.leading.equalTo(playerView.snp.centerX)
+        }
+
         view.addSubview(videoControlView)
 
         let views = [
@@ -295,11 +347,7 @@ class VideoPlayerViewController: UIViewController {
         ]
         views.forEach { videoControlView.addSubview($0)}
 
-        let iconSize: Float = 40
-
-        playerView.snp.makeConstraints {
-            $0.edges.equalTo(view.safeAreaLayoutGuide)
-        }
+        let iconSize: Float = 30
 
         videoControlView.snp.makeConstraints {
             $0.edges.equalTo(playerView)
@@ -331,7 +379,7 @@ class VideoPlayerViewController: UIViewController {
             $0.bottom.equalTo(videoControlView).inset(8)
         }
 
-        startTimeLabel.snp.makeConstraints {
+        startTimeLabel.snp.remakeConstraints {
             $0.leading.equalTo(videoControlView).inset(16)
             $0.bottom.equalTo(timeSlider.snp.top).inset(-8)
         }
@@ -349,7 +397,7 @@ class VideoPlayerViewController: UIViewController {
 
         closeButton.snp.makeConstraints {
             $0.leading.top.equalTo(playerView).inset(16)
-            $0.width.height.equalTo(40)
+            $0.width.height.equalTo(iconSize)
         }
     }
 
@@ -417,6 +465,9 @@ private extension VideoPlayerViewController {
     @objc
     func didTapforwardButton() {
         currentTimeSeconds += 15
+        if currentTimeSeconds >= totalTimeSeconds {
+            currentTimeSeconds = totalTimeSeconds
+        }
         timeSlider.value = self.currentTimeSeconds
 
         let newTime = CMTime(seconds: Double(currentTimeSeconds), preferredTimescale: 600)
@@ -462,35 +513,19 @@ extension VideoPlayerViewController {
     func bindingPlayerController(viewModel: VideoPlayerViewModel = VideoPlayerViewModel()) {
         playerViewModel = viewModel
 
-        playPauseButton.rx.tap
+        [
+            playPauseButton,
+            rewindButton,
+            forwardButton,
+            fullScreenButton,
+            minimizeScreenButton
+        ].forEach {
+            $0.rx.tap
             .bind(onNext: { _ in
                 viewModel.controlButtonTapped.accept(true)
             })
             .disposed(by: disposeBag)
-
-        rewindButton.rx.tap
-            .bind(onNext: { _ in
-                viewModel.controlButtonTapped.accept(true)
-            })
-            .disposed(by: disposeBag)
-
-        forwardButton.rx.tap
-            .bind(onNext: { _ in
-                viewModel.controlButtonTapped.accept(true)
-            })
-            .disposed(by: disposeBag)
-
-        fullScreenButton.rx.tap
-            .bind(onNext: { _ in
-                viewModel.controlButtonTapped.accept(true)
-            })
-            .disposed(by: disposeBag)
-
-        minimizeScreenButton.rx.tap
-            .bind(onNext: { _ in
-                viewModel.controlButtonTapped.accept(true)
-            })
-            .disposed(by: disposeBag)
+        }
 
         viewModel.shouldShowControl // Bool
             .bind(to: self.rx.videoControlVisibilty)
@@ -508,7 +543,6 @@ extension VideoPlayerViewController {
             .subscribe(onNext: { [weak self] time in
                 guard let self = self else { return }
                 let timeElapsed = Float(time.seconds)
-                print(timeElapsed)
                 self.currentTimeSeconds += 0.25
                 self.totalTimeSeconds += 0.25
                 self.timeSlider.maximumValue = self.totalTimeSeconds

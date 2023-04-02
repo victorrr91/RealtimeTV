@@ -15,7 +15,12 @@ extension Reactive where Base : NotificationCenter {
     -> Observable<Bool> {
         return notification(name)
             .map { _ in
-                return UIDevice.current.orientation.isLandscape
+                if  UIDevice.current.orientation.isLandscape {
+                    return true
+                } else if UIDevice.current.orientation == .portraitUpsideDown {
+                    return true
+                }
+                return false
             }
     }
 }

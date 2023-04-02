@@ -11,6 +11,7 @@
 		B186F68129D8634A005EB616 /* VideoListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B186F68029D8634A005EB616 /* VideoListViewModel.swift */; };
 		B186F68429D863AE005EB616 /* Video.swift in Sources */ = {isa = PBXBuildFile; fileRef = B186F68329D863AE005EB616 /* Video.swift */; };
 		B1ACE4CB29CD56DD00B957F7 /* AVPlayer+Rx.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1ACE4CA29CD56DD00B957F7 /* AVPlayer+Rx.swift */; };
+		B1B9F48729D974AD00DC2020 /* TapImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B9F48629D974AD00DC2020 /* TapImageView.swift */; };
 		B1D2EEAB29D6029F0009EFB2 /* VideoPlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D2EEAA29D6029F0009EFB2 /* VideoPlayerViewModel.swift */; };
 		B1D2EEAD29D604620009EFB2 /* NotificationCenter+Rx.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D2EEAC29D604620009EFB2 /* NotificationCenter+Rx.swift */; };
 		B1D2EEB029D618030009EFB2 /* RxGesture in Frameworks */ = {isa = PBXBuildFile; productRef = B1D2EEAF29D618030009EFB2 /* RxGesture */; };
@@ -33,6 +34,7 @@
 		B186F68029D8634A005EB616 /* VideoListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoListViewModel.swift; sourceTree = "<group>"; };
 		B186F68329D863AE005EB616 /* Video.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Video.swift; sourceTree = "<group>"; };
 		B1ACE4CA29CD56DD00B957F7 /* AVPlayer+Rx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AVPlayer+Rx.swift"; sourceTree = "<group>"; };
+		B1B9F48629D974AD00DC2020 /* TapImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapImageView.swift; sourceTree = "<group>"; };
 		B1D2EEAA29D6029F0009EFB2 /* VideoPlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayerViewModel.swift; sourceTree = "<group>"; };
 		B1D2EEAC29D604620009EFB2 /* NotificationCenter+Rx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotificationCenter+Rx.swift"; sourceTree = "<group>"; };
 		B1D717C429CC98C900F505BB /* RealtimeVideo_Tutorial.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RealtimeVideo_Tutorial.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -77,6 +79,7 @@
 			isa = PBXGroup;
 			children = (
 				B1D717EB29CCCD3B00F505BB /* PlayerView.swift */,
+				B1B9F48629D974AD00DC2020 /* TapImageView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -230,6 +233,7 @@
 				B1D717CC29CC98C900F505BB /* VideoListViewController.swift in Sources */,
 				B1D2EEAD29D604620009EFB2 /* NotificationCenter+Rx.swift in Sources */,
 				B1D717EC29CCCD3B00F505BB /* PlayerView.swift in Sources */,
+				B1B9F48729D974AD00DC2020 /* TapImageView.swift in Sources */,
 				B1D717C829CC98C900F505BB /* AppDelegate.swift in Sources */,
 				B1D717EA29CCCA1900F505BB /* VideoPlayerViewController.swift in Sources */,
 				B1ACE4CB29CD56DD00B957F7 /* AVPlayer+Rx.swift in Sources */,

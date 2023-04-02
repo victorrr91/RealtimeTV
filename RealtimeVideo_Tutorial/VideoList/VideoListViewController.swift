@@ -13,6 +13,7 @@ import RxCocoa
 class VideoListViewController: UIViewController {
 
     let disposeBag = DisposeBag()
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
 
     private lazy var videoListTableView: UITableView = {
         let tableView = UITableView()
@@ -30,6 +31,11 @@ class VideoListViewController: UIViewController {
         setupViews()
         title = "생방송 채널"
         navigationController?.navigationBar.prefersLargeTitles = true
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        appDelegate.shouldSupportAllOrientation = false
+        super.viewWillAppear(animated)
     }
 
     func bind(viewModel: VideoListViewModel) {
